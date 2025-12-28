@@ -9,6 +9,14 @@ project(James)
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")  # /MT für Release
 add_executable(${PROJECT_NAME} main.cpp)
+
+#whisper
+target_include_directories(${PROJECT_NAME} PRIVATE
+    "${CMAKE_SOURCE_DIR}/libs/whisper.cpp/src"
+    "${CMAKE_SOURCE_DIR}/libs/whisper.cpp/ggml/src"
+)
+
+# nlohmann_json
 target_include_directories(${PROJECT_NAME} PRIVATE external)
 target_compile_definitions(${PROJECT_NAME} PRIVATE JSON_NOEXCEPTION)
 
