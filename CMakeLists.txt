@@ -8,12 +8,18 @@ endif()
 project(James)
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")  # /MT für Release
-add_executable(${PROJECT_NAME} main.cpp)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+file(GLOB GGML_SOURCES "libs/whisper.cpp/ggml/src/*.cpp" "libs/whisper.cpp/ggml/src/*.c")
+add_executable(James main.cpp libs/whisper.cpp/src/whisper.cpp ${GGML_SOURCES})
+
 
 #whisper
+add_definitions(-DWHISPER_VERSION=\"1.0\")
 target_include_directories(${PROJECT_NAME} PRIVATE
-    "${CMAKE_SOURCE_DIR}/libs/whisper.cpp/src"
-    "${CMAKE_SOURCE_DIR}/libs/whisper.cpp/ggml/src"
+    "${CMAKE_SOURCE_DIR}/libs/whisper.cpp/include"       # whisper.h
+    "${CMAKE_SOURCE_DIR}/libs/whisper.cpp/ggml/include"  # ggml.h
 )
 
 # nlohmann_json
