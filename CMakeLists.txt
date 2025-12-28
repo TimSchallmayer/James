@@ -7,11 +7,10 @@ endif()
 
 project(James)
 
-# Statische Runtime
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")  # /MT für Release
-# Optional für Debug:
-# set(CMAKE_MSVC_RUNTIME_LIBRARY_DEBUG "MultiThreadedDebug")  # /MTd
 add_executable(${PROJECT_NAME} main.cpp)
+target_include_directories(${PROJECT_NAME} PRIVATE external)
+target_compile_definitions(${PROJECT_NAME} PRIVATE JSON_NOEXCEPTION)
 
 # PortAudio (static vcpkg)
 set(PORTAUDIO_ROOT "$ENV{VCPKG_ROOT}/installed/x64-windows-static")
