@@ -3,15 +3,19 @@
 #include <portaudio.h>
 #include <vosk_api.h>
 #include <cstdio>
+#include "external/json/json.hpp"
+#include <string>
 using namespace std;
+using json = nlohmann::json;
 
 #define SAMPLE_RATE (16000)
-#define FPB (256)
+#define FPB (192)
 #define SEC (10)
 #define CHANNELS (1)
 #define SAMPLE_TYPE paInt16
 typedef short Buff;
 
+bool is_white_space(string& s);
 
 int main() {
     // Initialize Vosk
@@ -54,7 +58,8 @@ int main() {
     Buff speicher[FPB * CHANNELS];
     //int alle_frames = SAMPLE_RATE * SEC;
     int aufgenommene_frames = 0;
-    cout << "Spreche etwas.." << "\n";
+    cout << "Spreche etwas: ..." << flush;
+    string current_txt = "";
     while (aufgenommene_frames >= 0)
     {
         int todo_frames = FPB;
@@ -65,30 +70,57 @@ int main() {
         }
       //  file.write(reinterpret_cast<char*>(speicher), sizeof(Buff) * CHANNELS * todo_frames);
         int err_code = vosk_recognizer_accept_waveform(recorder, reinterpret_cast<char*>(speicher), sizeof(Buff) * CHANNELS * todo_frames);
-        if (err_code == -1)
+        if (err_code == 1)
         {
-            cerr << "Error ";
-        }
-        else if (err_code == 1)
-        {
-            const char* res = vosk_recognizer_result(recorder);
-            cout << res << endl;
-            if (strstr(res, "stop") != nullptr) {
+            const char* res = vosk_recognizer_final_result(recorder);
+            json data = json::parse(res);
+            string text = data["text"];
+            cout << text << endl;
+            if (strstr(res, "ausschalten") != nullptr) {
                 return 0;
             }
+        }
+            /*
+        if (err_code != -1) {
+            const char* res_p = vosk_recognizer_partial_result(recorder);
+            json data_p = json::parse(res_p);
+            string input = data_p["partial"];
+            if (current_txt != input)
+            {
+                if(input.find(current_txt) == string::npos) {
+                    current_txt = input;
+                    continue;
+                }
+                size_t pos = input.find(current_txt);
+                string input_cpy = input;
+                string text = input_cpy.erase(pos, pos + current_txt.length());
+                cout << text << flush;
+                if (text.find("stop") != string::npos)
+                {
+                    return 0;
+                }
+                
+                current_txt = input;
+            }
+        }*/
+        else if (err_code == -1)
+        {
+            cerr << "Error ";
         }
         
         aufgenommene_frames += todo_frames;
     }
-    const char *  text = vosk_recognizer_result(recorder);
     Pa_StopStream(live);
     Pa_CloseStream(live);
     Pa_Terminate();
     //file.close();
     vosk_model_free(modell);
     vosk_recognizer_free(recorder);
-    cout << text << "\n";
     cout << "fertig! \n";
 
     return 0;
+}
+
+bool is_white_space(string& s) {
+    return s.find_first_of(" \t\n\r\f\v") == string::npos;
 }
